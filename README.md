@@ -1,6 +1,6 @@
 # Plastix
 
-## Grammar Plastix
+## Grammar
 
 ```
 Document ::= Blocks

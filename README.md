@@ -18,8 +18,9 @@ UnorderedList ::= '* ' Block
 ## Cheatsheet
 ```
 Unordered List:
+
 * Shopping
-  * Egg
+  * Eggs
     * small
   * Milk
   * Bacon

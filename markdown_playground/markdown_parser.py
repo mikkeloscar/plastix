@@ -1,6 +1,11 @@
 import funcparserlib.parser as p
 from functools import reduce
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.lexers import PythonLexer
+from pygments.formatters import LatexFormatter
+
 # blocks
 class Paragraph:
     def __init__(self, text):
@@ -35,6 +40,11 @@ class CodeBlock:
 
     def __init__(self, code):
         self.code = code
+
+    def latex(self):
+        formatter = LatexFormatter()
+        print(formatter.get_style_defs())
+        return highlight(self.code, get_lexer_by_name('python'), formatter=formatter)
 
     def __repr__(self):
         cut = min(len(self.code)-1, 7)
@@ -193,7 +203,8 @@ block = atxheader | codeBlock | reference | newline#| text#| codeBlock | paragra
 document = p.many(block) + p.skip(p.finished)
 
 # print(document.parse("##### heade`sad`r\n## header2\n\n    def parse():\n\n        return None\n\n"))
-doc = document.parse("# Header med `kode` og tekst\n")
+doc = document.parse("    def parse():\n        return None\n\n")
+# doc = document.parse("# Header med `kode` og tekst\n")
 
 for d in doc:
     print(d.latex())

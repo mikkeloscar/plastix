@@ -60,6 +60,22 @@ Figures
 ![image.jpg] label
 Caption text
 
+Tables
+
+(måske uden plusser +++)
+kunne være sejt med alignment også
+
++----------------------------+
+| Year  | President          |
++----------------------------+
+| 1789  | George Washington  |
++----------------------------+
+| 1797  | John Adams         |
++----------------------------+
+| 1801  | Thomas Jefferson   |
++----------------------------+
+
+
 
 
 ```

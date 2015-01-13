@@ -47,6 +47,11 @@ Sections
 === Header h3
 
 
+References
+
+The book^# is very good.
+
+#: Harry Potter
 
 
 

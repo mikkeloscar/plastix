@@ -38,6 +38,15 @@ Color:
 bla <bla red> bla
 
 
+Sections
+
+= Header h1
+
+== Header h2
+
+=== Header h3
+
+
 
 
 

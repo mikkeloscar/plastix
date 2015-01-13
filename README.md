@@ -17,7 +17,14 @@ List ::= UnorderedList
       | OrderedList
 
 UnorderedList ::= '* ' Block
-Line ::= Inline Endline
+Inline ::= Color
+        | Bold
+        | Italic
+        | Underline
+        | Text
+Inlines ::= Inline
+         | Inline Inlines
+Line ::= Inlines Endline
 Section ::= '=====' Line
          | '====' Line
          | '===' Line
@@ -30,6 +37,7 @@ ColorDef ::= '#' Int Int Int Int Int Int <- hex
 Color ::= '<' Inlines ':' ColorDef '>'
 Italic ::= '//' Inlines '//'
 Bold ::= '*' Inlines '*'
+Underline ::= '_' Inlines '_'
 Footnote ::= '^#'
 FootnoteRef ::= '#:' Inlines
 Figure ::= '![' Img ']' Label ('\n') Caption
@@ -63,6 +71,10 @@ bla //bla// bla
 Color:
 
 bla <bla:red> bla
+
+Underline:
+
+_underline_
 
 
 Sections

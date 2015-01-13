@@ -356,7 +356,7 @@ paragraph = p.oneplus(inline) + newline
 #             optionalTitle + p.maybe(endline) \
 #             >> format_reference
 
-block = section | footnoteRef | figure | paragraph | newline#| text#| codeBlock | paragraph
+block = section | footnoteRef | figure | paragraph | newline #| text#| codeBlock | paragraph
 
 document = p.many(block) + p.skip(p.finished)
 

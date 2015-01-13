@@ -38,11 +38,11 @@ notQuote :: Char -> Bool
 notQuote s = s /= '"'
 
 -- Parse StringValue
-str :: Parser String
-str = token $ do _ <- string "\""
-                 s <- munch notQuote
-                 _ <- string "\""
-                 return s
+-- str :: Parser String
+-- str = token $ do _ <- string "\""
+--                  s <- munch notQuote
+--                  _ <- string "\""
+--                  return s
 
 -- Set of keywords in the Fast language
 -- (compared to lists this gives us O(log n) lookup vs. O(n))
@@ -66,11 +66,38 @@ keyword :: String -> Parser ()
 keyword s = do _ <- symbol s
                notFollowedBy $ satisfy constituent
 
+stringChar :: Char -> Bool
+stringChar c = isAlpha c || isDigit c
 
-header :: Parser Header
+str :: Parser String
+str = do s <- munch1 stringChar
+         return s
+
+
+header :: Parser Block
 header = do l <- munch1 (\s -> s == '#')
             _ <- munch space
             i <- inline
+            return $ Header {level = (length l), inline = i}
+
+paragraph :: Parser Block
+paragraph = do i <- many1 inline
+               _ <- string "\n\n"
+               _ <- many1 blankline
+               return $ Paragraph i
+
+codeBlock :: Parser Block
+codeBlock = do 
+
+inline :: Parser Inline
+inline = str
+       <|> bold
+
+bold :: Parser Inline
+bold = do s <- string "**"
+          i <- inline
+          s <- string "**"
+          return $ Bold i
 
 -- Args
 args :: Parser [Expr]
@@ -338,9 +365,21 @@ classDecls = do c <- classDecl
                 return (c:cs)
              <|> return []
 
--- Program
-program :: Parser Prog
-program = classDecls
+-- Block
+block :: Parser Block
+block = header
+      <|> codeBlock
+
+-- Blocks
+blocks :: Parser [Block]
+blocks = do b <- block
+            bs <- blocks
+            return (b:bs)
+         <|> return []
+
+-- Document
+document :: Parser Document
+document = blocks
 
 parseString :: String -> Either Error Prog
 parseString s = case prog of

@@ -20,7 +20,9 @@ class Header:
         self.text = text
 
     def latex(self):
-        return Header.LATEX[self.level] % self.text
+        text = [x.latex() for x in self.text]
+        text = ''.join(text)
+        return Header.LATEX[self.level] % text + "\n"
 
     def __repr__(self):
         return "Header: \"%s\" (%s)" % (self.text, self.level)
@@ -60,9 +62,23 @@ class Code:
         return "Code: \"%s..\"" % self.code[:cut]
 
     def latex(self):
+        escapes = ["_", "#"]
         # TODO optional pygments
-        code = self.code.replace("_", "\_")
-        return Code.LATEX % code
+        code = self.escape(self.code, escapes)
+        return (Code.LATEX % code)
+
+    def escape(self, s, escapes):
+        for e in escapes:
+            s = s.replace(e, "\\" + e)
+        return s
+
+class String:
+    def __init__(self, string):
+        self.string = string
+
+    def latex(self):
+        # TODO escape stuff
+        return self.string
 
 
 
@@ -102,6 +118,9 @@ def format_reference(s):
         title = ""
     return Reference(ident, url, title)
 
+def format_str(s):
+    return String(''.join(s))
+
 
 # helper parsers
 char = lambda c: p.skip(p.a(c))
@@ -110,7 +129,7 @@ literal = lambda s: reduce(lambda x,y: x+y, map(char, s))
 
 isNormalText = lambda c: (c not in ['*', '_', '`', '\n'])
 
-text = p.oneplus(p.some(isNormalText)) >> (lambda s: ''.join(s))
+text = p.oneplus(p.some(isNormalText)) >> format_str
 
 inlineCodeChar = p.many(p.some(lambda c: c not in ('`')))
 
@@ -174,4 +193,9 @@ block = atxheader | codeBlock | reference | newline#| text#| codeBlock | paragra
 document = p.many(block) + p.skip(p.finished)
 
 # print(document.parse("##### heade`sad`r\n## header2\n\n    def parse():\n\n        return None\n\n"))
-print(document.parse("[id]: 1\n"))
+doc = document.parse("# Header med `kode` og tekst\n")
+
+for d in doc:
+    print(d.latex())
+
+

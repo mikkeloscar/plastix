@@ -24,4 +24,21 @@ Unordered List:
     * small
   * Milk
   * Bacon
+
+Bold:
+
+bla *bold* bla
+
+Italic:
+
+bla //bla// bla
+
+Color:
+
+bla <bla red> bla
+
+
+
+
+
 ```

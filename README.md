@@ -53,6 +53,13 @@ The book^# is very good.
 
 #: Harry Potter
 
+Figures
+
+(label optional) - captional optional (check for blank line)
+
+![image.jpg] label
+Caption text
+
 
 
 ```

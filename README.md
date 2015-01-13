@@ -6,12 +6,39 @@
 Document ::= Blocks
 Blocks ::= Block
         | Block Blocks
-Block ::= List
+Block ::= Section
+       | List
+       | FootnoteRef
+       | Figure
+       | Paragraph
 
+Paragraph ::= Inlines
 List ::= UnorderedList
       | OrderedList
 
 UnorderedList ::= '* ' Block
+Line ::= Inline Endline
+Section ::= '=====' Line
+         | '====' Line
+         | '===' Line
+         | '==' Line
+         | '=' Line
+ColorValue ::= see: http://www.w3schools.com/cssref/css_colornames.asp
+ColorDef ::= '#' Int Int Int Int Int Int <- hex
+          |  '(' rgb ')' <- RGB
+          | ColorValue   <- predefined colors
+Color ::= '<' Inlines ':' ColorDef '>'
+Italic ::= '//' Inlines '//'
+Bold ::= '*' Inlines '*'
+Footnote ::= '^#'
+FootnoteRef ::= '#:' Inlines
+Figure ::= '![' Img ']' Label ('\n') Caption
+Caption ::= E
+         | Inlines
+Label ::= E
+       | Ident
+Ident ::= [a-z0-9_:-]+
+
 ```
 
 
@@ -35,7 +62,7 @@ bla //bla// bla
 
 Color:
 
-bla <bla red> bla
+bla <bla:red> bla
 
 
 Sections
@@ -49,9 +76,15 @@ Sections
 
 References
 
-The book^# is very good.
+The book^# is very good^#.
 
 #: Harry Potter
+#: Harry Potter
+
+I cite [cite] something shown in Figure _[fig:2].
+
+References:
+[id]: Author
 
 Figures
 
@@ -78,6 +111,8 @@ kunne være sejt med alignment også
 Math
 
 TI-syntax:
+
+Wrap in `$`
 
 x=(2ab+a*2)/(a*2^2+sqrt(9^a))+a
 

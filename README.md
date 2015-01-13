@@ -75,7 +75,11 @@ kunne være sejt med alignment også
 | 1801  | Thomas Jefferson   |
 +----------------------------+
 
+Math
 
+TI-syntax:
+
+x=(2ab+a*2)/(a*2^2+sqrt(9^a))+a
 
 
 ```

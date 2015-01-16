@@ -130,3 +130,84 @@ x=(2ab+a*2)/(a*2^2+sqrt(9^a))+a
 
 
 ```
+
+## Grammar simplified
+
+```
+Document ::= Blocks
+Blocks ::= Block
+        | Block Blocks
+Block ::= Section
+       | List
+       | FootnoteRef
+       | Figure
+       | Paragraph
+       | Math
+       | Table
+       | Newline
+
+Paragraph ::= Lines + Endline
+List ::= UnorderedList
+      | OrderedList
+UnorderedList ::= UnorderedListItem
+               | UnorderedListItem UnorderedList
+UnorderedListItem ::= '* ' Block
+OrderedList ::= OrderedListItem
+             | OrderedListItem OrderedList
+OrderedListItem ::= '# ' Block
+Inline ::= Color
+        | Bold
+        | Italic
+        | Underline
+        | Symbol
+        | InlineMath
+        | Text
+Inlines ::= Inline
+         | Inline Inlines
+Line ::= Inlines Newline
+Lines ::= Line
+       | Lines
+Section ::= '=====' Line
+         | '====' Line
+         | '===' Line
+         | '==' Line
+         | '=' Line
+
+ColorValue ::= 'red'
+            | 'blue'
+            | 'green'
+            | 'yellow'
+            | 'black'
+            | 'white'
+            | 'purple'
+            | 'cyan'
+            | 'magenta'
+            | '...'
+Color ::= '<' Inlines ':' ColorValue '>'
+Italic ::= '//' Inlines '//'
+Bold ::= '*' Inlines '*'
+Underline ::= '_' Inlines '_'
+
+Footnote ::= '^#'
+FootnoteRef ::= '#:' Inlines
+
+Figure ::= '![' Img ']' Label ('\n') Caption
+Caption ::= E
+         | Inlines
+Label ::= E
+       | Ident
+
+InlineMath ::= '$' Math '$'
+MathBlock ::= InlineMath + Newline
+
+Table ::= TableHLine TableRows
+TableRows ::= TableRow
+           | TableRow TableRows
+TableHLine ::= '-----' Newline
+TableRow ::= '|' TableCells
+TableCell ::= Inline '|' Newline
+
+Ident ::= [a-z0-9_:-]+
+Symbol ::= '#' SymbolName
+
+```

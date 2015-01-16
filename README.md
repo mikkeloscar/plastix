@@ -137,6 +137,8 @@ x=(2ab+a*2)/(a*2^2+sqrt(9^a))+a
 Document ::= Blocks
 Blocks ::= Block
         | Block Blocks
+        | e
+
 Block ::= Section
        | List
        | FootnoteRef
@@ -146,22 +148,30 @@ Block ::= Section
        | Table
        | Newline
 
-Paragraph ::= Lines + Endline
+Paragraph ::= Lines + Newline
 List ::= UnorderedList
       | OrderedList
 UnorderedList ::= UnorderedListItem
                | UnorderedListItem UnorderedList
 UnorderedListItem ::= '* ' Block
+                   | Spacing UnorderedListItem
+                   | e
+Spacing ::= Space
+         | Tab
+         | e
+
 OrderedList ::= OrderedListItem
              | OrderedListItem OrderedList
 OrderedListItem ::= '# ' Block
+                 | Spacing OrderedListItem
+                 | e
 Inline ::= Color
         | Bold
         | Italic
         | Underline
         | Symbol
         | InlineMath
-        | Text
+        | Text (regex)
 Inlines ::= Inline
          | Inline Inlines
 Line ::= Inlines Newline
@@ -203,8 +213,11 @@ MathBlock ::= InlineMath + Newline
 Table ::= TableHLine TableRows
 TableRows ::= TableRow
            | TableRow TableRows
+           | e
 TableHLine ::= '-----' Newline
 TableRow ::= '|' TableCells
+TableCells ::= TableCell 
+            |  TableCell TableCells
 TableCell ::= Inline '|' Newline
 
 Ident ::= [a-z0-9_:-]+

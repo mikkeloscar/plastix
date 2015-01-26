@@ -136,7 +136,6 @@ x=(2ab+a*2)/(a*2^2+sqrt(9^a))+a
 ```
 Document ::= Blocks
 Blocks ::= E
-        | Block
         | Block Blocks
 
 Block ::= Section

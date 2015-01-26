@@ -144,7 +144,7 @@ Block ::= Section
        | FootnoteRef
        | Figure
        | Paragraph
-       | Math
+       | MathBlock
        | Table
        | Newline
 
@@ -208,7 +208,7 @@ Label ::= E
        | Ident
 
 InlineMath ::= '$' Math '$'
-MathBlock ::= InlineMath + Newline
+MathBlock ::= InlineMath Newline
 
 Table ::= TableHLine TableRows
 TableRows ::= E
@@ -216,7 +216,7 @@ TableRows ::= E
            | TableRow TableRows
 TableHLine ::= '-----' Newline
 TableRow ::= '|' TableCells
-TableCells ::= TableCell 
+TableCells ::= TableCell
             |  TableCell TableCells
 TableCell ::= Inline '|' Newline
 

@@ -10,6 +10,7 @@ Blocks ::= E
 Block ::= Section
        | List
        | FootnoteRef
+       | Reference
        | Figure
        | Paragraph
        | MathBlock
@@ -38,6 +39,7 @@ Inline ::= Color
         | Italic
         | Underline
         | Symbol
+        | CiteReference
         | InlineMath
         | Text (regex)
 Inlines ::= Inline
@@ -68,6 +70,10 @@ Underline ::= '_' Inlines '_'
 
 Footnote ::= '^#'
 FootnoteRef ::= '#:' Inlines
+
+CiteReference ::= '[' Ident ']'
+
+Reference ::= '[' Ident ']:' Space Lines
 
 Figure ::= '![' Img ']' Label Newline Caption
 Caption ::= E

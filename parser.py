@@ -1,6 +1,8 @@
 import funcparserlib.parser as p
 from functools import reduce
 
+import sys
+
 # from pygments import highlight
 # from pygments.lexers import get_lexer_by_name
 # from pygments.lexers import PythonLexer
@@ -61,10 +63,9 @@ class FootnoteRef:
 #         return "CodeBlock: \"%s..\"" % self.code[:cut]
 
 class Reference:
-    def __init__(self, ident, url, title=""):
+    def __init__(self, ident, reference=""):
         self.ident = ident
-        self.url = url
-        self.title = title
+        self.reference = reference
 
     def __repr__(self):
         return "Reference %s" % self.ident
@@ -151,6 +152,29 @@ class Color:
     def __repr__(self):
         return "%s:%s" % (self.text, self.color)
 
+class Figure:
+    def __init__(self, path, label=None, caption=None):
+        self.path = path
+        self.label = label
+        self.caption = caption
+
+    def __repr__(self):
+        return "img[%s]" % self.path
+
+class List:
+    def __init__(self, listType, items):
+        self.listType = listType
+        self.items = items
+
+class ListItem:
+    def __init__(self, listType, item, indentation=0):
+        self.listType = listType
+        self.item = item
+        self.indentation = indentation
+
+    def __repr__(self):
+        return "%s - %s:%d" % (self.listType, self.item, self.indentation)
+
 
 
 
@@ -185,10 +209,11 @@ def format_inlinecode(s):
     return Code(''.join(s))
 
 def format_reference(s):
-    ident, _, url, title = s
-    if not title:
-        title = ""
-    return Reference(ident, url, title)
+    print(s)
+    ident, _, ref = s
+    if not ref:
+        ref = ""
+    return Reference(ident, ref)
 
 def format_str(s):
     print("str text", s)
@@ -202,12 +227,10 @@ def format_footref(s):
     return FootnoteRef(inline)
 
 def format_bold(s):
-    state = "bold"
     print("bold!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     return Bold(s)
 
 def format_italic(s):
-    state = "italic"
     print("italic")
     return Italic(s)
 
@@ -215,9 +238,29 @@ def format_rgb(s):
     print(s)
 
 def format_color(s):
-    state = "color"
     text, color = s
     return Color(text, color)
+
+def format_figure(s):
+    path, (_, label), caption = s
+    if label == "":
+        label = None
+    return Figure(path, label, caption)
+
+# ordered list
+def format_sublistitem(s):
+    print(s)
+    indent, listType, item = s
+    return ListItem(listType, item, len(indent))
+
+def format_listitem(s):
+    listTupe, item = s
+    return ListItem(listTupe, item)
+
+def format_list(l):
+    first, rest = l
+    fullList = [first] + rest
+    return List(first.listType, fullList)
 
 
 # global document state
@@ -240,13 +283,13 @@ def isident(c):
     return c.isdigit() or ('a' <= c and c <= 'z') or c in (':', '_', '-')
 
 def isnormaltext(c):
-    return c not in ('*', '/', '<', '>', ':', '^', '\n')
+    return c not in ('*', '/', '<', '>', ':', '^', '#', '\n')
 
 def ishex(c):
     return c.isdigit() or ('a' <= c and c <= 'f')
 
 def ispathchar(c):
-    return c.isalpha() or c.isdigit() or c.isident() or c in ('/', '.')
+    return c.isalpha() or c.isdigit() or isident(c) or c in ('/', '.')
 
 def validescapechar(c):
     if not state:
@@ -257,6 +300,9 @@ def validescapechar(c):
         return c in ('*', '<', '>', ':', '^', '\n')
     if state == "color":
         return c in ('*', '<', '^', '\n')
+
+def notSpace(c):
+    return c not in [' ', '\t']
 
 ident = p.many(p.some(isident)) >> join
 
@@ -292,7 +338,7 @@ footnote = literal('^#') >> format_footnote
 
 # rest = bold | color | italic | (p.some(lambda c: not isnormaltext(c)) >> (lambda s: print("rest:", s)))
 
-# escapechar = p.some(validescapechar)
+# escapechar = char('\\') + p.some(not isnormaltext)
 
 inline.define(
         footnote
@@ -301,11 +347,11 @@ inline.define(
       | italic
       | text)
 
-print(inline.parse("*bold*")) # "<color*a*:red>"))
+# print(inline.parse("*bold*")) # "<color*a*:red>"))
 
 newline = p.oneplus(p.a('\n')) >> join
 
-endline = char('\n')
+endline = char('\n') | p.finished
 
 line = p.oneplus(inline) + endline
 
@@ -324,12 +370,13 @@ section = literal('=====') + spaces + line >> \
 footnoteRef = literal('#:') + spaces + p.oneplus(inline) + endline >> format_footref
 
 # figure
-path = p.oneplus(p.some(ispathchar)) # TODO handle paths
+path = p.oneplus(p.some(ispathchar)) >> join # TODO handle paths
 optLabel = p.maybe(spaces + ident)
-optCaption = p.maybe(p.oneplus(inline))
-figure = literal('![') + path + char(']') + optLabel + endline + optCaption
+optCaption = p.maybe(p.oneplus(line))
+# figure = literal('![') + path + char(']') + optLabel + endline + optCaption
+figure = char('!') + path + optLabel + endline + optCaption >> format_figure
 
-paragraph = p.oneplus(inline) + newline
+paragraph = p.oneplus(line) + p.maybe(newline | p.finished)
 
 # # codeblock parsing
 # # any non-newline char can be in a codeblock
@@ -340,29 +387,50 @@ paragraph = p.oneplus(inline) + newline
 # codeBlock = p.oneplus(codeLine) >> format_code
 
 
-# plain = p.many(p.some(lambda c: c.isdigit() or c.isalpha() or c == '_'))
+# general sublists
+listStart = p.some(lambda c: c in ['#', '*']) + char(' ')
+listSubItem = p.oneplus(p.some(lambda c: c == " ")) + \
+              listStart + p.oneplus(line) >> format_sublistitem
 
-# not working yet!
-# references
-# titleWrapStart = p.some(lambda c: c in ('\"', '\'', '('))
-# titleWrapEnd = p.some(lambda c: c in ('\"', '\'', ')'))
+# ordered lists
+orderedListItem = p.a('#') + char(' ') + p.oneplus(line) >> format_listitem
+orderedInlistItem =  orderedListItem | listSubItem
 
-# optionalTitle = spaces + p.maybe(titleWrapStart + plain + titleWrapEnd)
+orderedList = orderedListItem + p.many(orderedInlistItem) >> format_list
 
-# url = p.a('1')
+# unordered lists
+unorderedListItem = p.a('*') + char(' ') + p.oneplus(line) >> format_listitem
+unorderedInlistItem =  unorderedListItem | listSubItem
 
-# TODO handle maybe endline better
-# reference = char('[') + ident + literal(']:') + spaces + url + \
-#             optionalTitle + p.maybe(endline) \
-#             >> format_reference
+unorderedList = unorderedListItem + p.many(unorderedInlistItem) >> format_list
 
-block = section | footnoteRef | figure | paragraph | newline #| text#| codeBlock | paragraph
+lists = orderedList | unorderedList
+
+
+reference = char('[') + ident + literal(']:') + spaces + p.oneplus(line) \
+            >> format_reference
+
+block = section \
+      | footnoteRef \
+      | reference \
+      | figure \
+      | lists \
+      | paragraph \
+      | newline #| text#| codeBlock | paragraph
 
 document = p.many(block) + p.skip(p.finished)
 
-# print(document.parse("##### heade`sad`r\n## header2\n\n    def parse():\n\n        return None\n\n"))
-# doc = document.parse("===== hej *bold //hej//*<color:red>\n#: footnote\nsa#dd^##\n") #"sdasdasd\n")
-# # doc = document.parse("# Header med `kode` og tekst\n")
-# print(doc)
-# for d in doc:
-#     print(d.latex())
+def load(path):
+    plastix = ""
+    with open(path, "r") as f:
+        # hacky way to handle comments
+        lines = f.readlines()
+        outlines = []
+        for line in lines:
+            if line[0] != "%":
+                outlines.append(line)
+        plastix = ''.join(outlines)
+    print(document.parse(plastix))
+
+if __name__ == "__main__":
+    load(sys.argv[1])

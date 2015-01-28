@@ -138,6 +138,23 @@ class Italic:
         text = ''.join(text)
         return "i:%s:i" % text
 
+class Underline:
+
+    LATEX = "\\underline{%s}"
+
+    def __init__(self, text):
+        self.text = text
+
+    def latex(self):
+        text = [x.latex() for x in self.text]
+        text = ''.join(text)
+        return Underline.LATEX % text
+
+    def __repr__(self):
+        text = [x.__repr__() for x in self.text]
+        text = ''.join(text)
+        return "u:%s:u" % text
+
 class Footnote:
 
     def __repr__(self):
@@ -174,6 +191,30 @@ class ListItem:
 
     def __repr__(self):
         return "%s - %s:%d" % (self.listType, self.item, self.indentation)
+
+
+class Table:
+    def __init__(self, rows):
+        self.rows = rows
+
+class TableCell:
+    def __init__(self, content):
+        self.content = content
+
+    def __repr__(self):
+        text = [x.__repr__() for x in self.content]
+        text = ''.join(text)
+        return text
+
+class TableRow:
+    def __init__(self, cells):
+        self.cells = cells
+
+    def __repr__(self):
+        cell = [x.__repr__() for x in self.cells]
+        cell = ''.join(cell)
+        return cell
+
 
 
 
@@ -227,12 +268,13 @@ def format_footref(s):
     return FootnoteRef(inline)
 
 def format_bold(s):
-    print("bold!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     return Bold(s)
 
 def format_italic(s):
-    print("italic")
     return Italic(s)
+
+def format_underline(s):
+    return Underline(s)
 
 def format_rgb(s):
     print(s)
@@ -262,9 +304,25 @@ def format_list(l):
     fullList = [first] + rest
     return List(first.listType, fullList)
 
+def format_table(s):
+    _, rows = s
+    return Table(rows)
+
+def format_cell(s):
+    print("cell", s)
+    if isinstance(s, tuple):
+        content, _ = s
+    else:
+        content = s
+    return TableCell(content)
+
+def format_row(r):
+    row, _ = r
+    return TableRow(row)
+
 
 # global document state
-state = None
+# state = None
 
 
 # helper parsers
@@ -283,7 +341,7 @@ def isident(c):
     return c.isdigit() or ('a' <= c and c <= 'z') or c in (':', '_', '-')
 
 def isnormaltext(c):
-    return c not in ('*', '/', '<', '>', ':', '^', '#', '\n')
+    return c not in ('*', '/', '<', '>', ':', '^', '#', '|', '-', '_', '\n')
 
 def ishex(c):
     return c.isdigit() or ('a' <= c and c <= 'f')
@@ -320,6 +378,12 @@ bold = char('*') + p.many(inline) + char('*') >> format_bold
 # italic
 italic = literal('//') + p.many(inline) + literal('//') >> format_italic
 
+underline = char('_') + p.many(inline) + char('_') >> format_underline
+
+# inline math
+# TODO inline math
+# inlineMath = char('$') + p.many(inline) + char('$')
+
 # color
 hexVal = p.some(ishex)
 hexColor = p.a('#') + hexVal + hexVal + hexVal + hexVal + hexVal + hexVal >> join
@@ -345,6 +409,7 @@ inline.define(
       | color
       | bold
       | italic
+      | underline
       | text)
 
 # print(inline.parse("*bold*")) # "<color*a*:red>"))
@@ -407,6 +472,14 @@ unorderedList = unorderedListItem + p.many(unorderedInlistItem) >> format_list
 lists = orderedList | unorderedList
 
 
+# tables
+tableCell = p.oneplus(inline) + char('|') + p.maybe(endline) >> format_cell
+tableHLine = p.oneplus(p.a('-')) + endline
+tableRow = char('|') + p.oneplus(tableCell) + tableHLine >> format_row
+
+table = tableHLine + p.oneplus(tableRow) >> format_table
+
+
 reference = char('[') + ident + literal(']:') + spaces + p.oneplus(line) \
             >> format_reference
 
@@ -415,6 +488,7 @@ block = section \
       | reference \
       | figure \
       | lists \
+      | table \
       | paragraph \
       | newline #| text#| codeBlock | paragraph
 

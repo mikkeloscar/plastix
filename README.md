@@ -22,8 +22,7 @@ List ::= UnorderedList
       | OrderedList
 UnorderedList ::= UnorderedListItem
                | UnorderedListItem UnorderedList
-UnorderedListItem ::= E
-                   | '* ' Block
+UnorderedListItem ::= '* ' Block
                    | Spacing UnorderedListItem
 Spacing ::= E
          | Space
@@ -31,8 +30,7 @@ Spacing ::= E
 
 OrderedList ::= OrderedListItem
              | OrderedListItem OrderedList
-OrderedListItem ::= E
-                 |'# ' Block
+OrderedListItem ::= '# ' Block
                  | Spacing OrderedListItem
 Inline ::= Color
         | Bold
@@ -75,7 +73,7 @@ CiteReference ::= '[' Ident ']'
 
 Reference ::= '[' Ident ']:' Space Lines
 
-Figure ::= '![' Img ']' Label Newline Caption
+Figure ::= '!' Path Label Newline Caption
 Caption ::= E
          | Inlines Newline
 Label ::= E
@@ -92,10 +90,11 @@ TableHLine ::= '-----' Newline
 TableRow ::= '|' TableCells
 TableCells ::= TableCell
             |  TableCell TableCells
-TableCell ::= Inline '|' Newline
+TableCell ::= Inline '|' optNewline
 
 Ident ::= [a-z0-9_:-]+
 Symbol ::= '#' SymbolName
+Path ::= [a-zA-Z\d_./]+\.(jpg|png|pdf)
 
 ```
 

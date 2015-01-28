@@ -1,0 +1,39 @@
+% header
+= Section 1
+
+== Section 2
+
+This section has a reference [ref].
+It also has a footnote^#
+
+=== Figures
+
+Please see figure [label].
+
+!img/path.jpg
+
+Now let's look at some <lists:red>
+
+# List Item tops
+  asdasd
+  # list item sub
+    * asdasd sub sub
+    * asd
+# top
+
+* list
+  * list2
+
+
+=== This is _a_ table
+
+---------
+| A | B |
+---------
+| x | y |
+---------
+
+
+#: Some footnote
+
+[ref]: Title, Author, 2000.

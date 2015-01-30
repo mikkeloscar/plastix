@@ -3,238 +3,35 @@ from functools import reduce
 
 import sys
 
+from elements import (
+        Paragraph,
+        Section,
+        FootnoteRef,
+        Reference,
+        String,
+        Bold,
+        Italic,
+        Underline,
+        Escaped,
+        Footnote,
+        Color,
+        Figure,
+        List,
+        ListItem,
+        Table,
+        TableCell,
+        TableRow,
+        Newline,
+        InlineRef
+)
+
 # from pygments import highlight
 # from pygments.lexers import get_lexer_by_name
 # from pygments.lexers import PythonLexer
 # from pygments.formatters import LatexFormatter
 
-# blocks
-class Paragraph:
-    def __init__(self, text):
-        self.text = text
 
-class Section:
-
-    LATEX = { 1: "\\section{%s}"
-            , 2: "\\subsection{%s}"
-            , 3: "\\subsubsection{%s}"
-            , 4: "\\paragraph{%s}"
-            , 5: "\\subparagraph{%s}"
-            }
-
-    def __init__(self, text, level=1):
-        self.level = level
-        self.text = text
-
-    def latex(self):
-        text = [x.latex() for x in self.text]
-        text = ''.join(text)
-        return Section.LATEX[self.level] % text + "\n"
-
-    def __repr__(self):
-        return "Section: \"%s\" (%s)" % (self.text, self.level)
-
-class FootnoteRef:
-
-    def __init__(self, inline):
-        self.inline = inline
-
-    def __repr__(self):
-        text = [x.latex() for x in self.inline]
-        text = ''.join(text)
-        return "Footnote: %s" %  text
-
-# class Blockquote:
-#     def __init__(self, text):
-#         self.text = text
-
-# class CodeBlock:
-
-#     def __init__(self, code):
-#         self.code = code
-
-#     def latex(self):
-#         formatter = LatexFormatter()
-#         print(formatter.get_style_defs())
-#         return highlight(self.code, get_lexer_by_name('python'), formatter=formatter)
-
-#     def __repr__(self):
-#         cut = min(len(self.code)-1, 7)
-#         return "CodeBlock: \"%s..\"" % self.code[:cut]
-
-class Reference:
-    def __init__(self, ident, reference=""):
-        self.ident = ident
-        self.reference = reference
-
-    def __repr__(self):
-        return "Reference %s" % self.ident
-
-# inlines
-class Code:
-
-    LATEX = "\\texttt{%s}"
-
-    def __init__(self, code):
-        self.code = code
-
-    def __repr__(self):
-        cut = min(len(self.code)-1, 7)
-        return "Code: \"%s..\"" % self.code[:cut]
-
-    def latex(self):
-        escapes = ["_", "#"]
-        # TODO optional pygments
-        code = self.escape(self.code, escapes)
-        return (Code.LATEX % code)
-
-    def escape(self, s, escapes):
-        for e in escapes:
-            s = s.replace(e, "\\" + e)
-        return s
-
-class String:
-    def __init__(self, string):
-        self.string = string
-
-    def latex(self):
-        # TODO escape stuff
-        return self.string
-
-    def __repr__(self):
-        return self.string
-
-class Bold:
-
-    LATEX = "\\textbf{%s}"
-
-    def __init__(self, text):
-        self.text = text
-
-    def latex(self):
-        text = [x.latex() for x in self.text]
-        text = ''.join(text)
-        return Bold.LATEX % text
-
-    def __repr__(self):
-        text = [x.__repr__() for x in self.text]
-        text = ''.join(text)
-        return "b:%s:b" % text
-
-class Italic:
-
-    LATEX = "\\textit{%s}"
-
-    def __init__(self, text):
-        self.text = text
-
-    def latex(self):
-        text = [x.latex() for x in self.text]
-        text = ''.join(text)
-        return Italic.LATEX % text
-
-    def __repr__(self):
-        text = [x.__repr__() for x in self.text]
-        text = ''.join(text)
-        return "i:%s:i" % text
-
-class Underline:
-
-    LATEX = "\\underline{%s}"
-
-    def __init__(self, text):
-        self.text = text
-
-    def latex(self):
-        text = [x.latex() for x in self.text]
-        text = ''.join(text)
-        return Underline.LATEX % text
-
-    def __repr__(self):
-        text = [x.__repr__() for x in self.text]
-        text = ''.join(text)
-        return "u:%s:u" % text
-
-class Footnote:
-
-    def __repr__(self):
-        return "^#"
-
-class Color:
-
-    def __init__(self, text, color):
-        self.text = text
-        self.color = color
-
-    def __repr__(self):
-        return "%s:%s" % (self.text, self.color)
-
-class Figure:
-    def __init__(self, path, label=None, caption=None):
-        self.path = path
-        self.label = label
-        self.caption = caption
-
-    def __repr__(self):
-        return "img[%s]" % self.path
-
-class List:
-    def __init__(self, listType, items):
-        self.listType = listType
-        self.items = items
-
-class ListItem:
-    def __init__(self, listType, item, indentation=0):
-        self.listType = listType
-        self.item = item
-        self.indentation = indentation
-
-    def __repr__(self):
-        return "%s - %s:%d" % (self.listType, self.item, self.indentation)
-
-
-class Table:
-    def __init__(self, rows):
-        self.rows = rows
-
-class TableCell:
-    def __init__(self, content):
-        self.content = content
-
-    def __repr__(self):
-        text = [x.__repr__() for x in self.content]
-        text = ''.join(text)
-        return text
-
-class TableRow:
-    def __init__(self, cells):
-        self.cells = cells
-
-    def __repr__(self):
-        cell = [x.__repr__() for x in self.cells]
-        cell = ''.join(cell)
-        return cell
-
-
-
-
-
-
-# format atxheader string
-# def format_atxheader(s):
-#     title = ""
-#     levels, chars = s
-#     level = len(levels)
-#     if level > 5:
-#         level = 5
-#         title = levels[5:] + ''.join(chars)
-#     else:
-#         pos = 0
-#         while chars[pos] == ' ':
-#             pos += 1
-#         print(chars)
-#         title = ''.join(chars[pos:])
-#     return Header(title, level)
+# formatting functions
 
 def format_section(s, level):
     return Section(s[1], level)
@@ -250,14 +47,12 @@ def format_inlinecode(s):
     return Code(''.join(s))
 
 def format_reference(s):
-    print(s)
     ident, _, ref = s
     if not ref:
         ref = ""
     return Reference(ident, ref)
 
 def format_str(s):
-    print("str text", s)
     return String(''.join(s))
 
 def format_footnote(s):
@@ -269,6 +64,9 @@ def format_footref(s):
 
 def format_bold(s):
     return Bold(s)
+
+def format_escape(c):
+    return Escaped(c)
 
 def format_italic(s):
     return Italic(s)
@@ -291,7 +89,6 @@ def format_figure(s):
 
 # ordered list
 def format_sublistitem(s):
-    print(s)
     indent, listType, item = s
     return ListItem(listType, item, len(indent))
 
@@ -309,7 +106,6 @@ def format_table(s):
     return Table(rows)
 
 def format_cell(s):
-    print("cell", s)
     if isinstance(s, tuple):
         content, _ = s
     else:
@@ -320,9 +116,16 @@ def format_row(r):
     row, _ = r
     return TableRow(row)
 
+def format_newline(s):
+    print(s)
+    return Newline(''.join(s))
 
-# global document state
-# state = None
+def format_paragraph(s):
+    paragraph, newline = s
+    return Paragraph(paragraph, newline)
+
+def format_inlinereference(s):
+    return InlineRef(s)
 
 
 # helper parsers
@@ -341,7 +144,20 @@ def isident(c):
     return c.isdigit() or ('a' <= c and c <= 'z') or c in (':', '_', '-')
 
 def isnormaltext(c):
-    return c not in ('*', '/', '<', '>', ':', '^', '#', '|', '-', '_', '\n')
+    return c not in ( '*'
+                    , '/'
+                    , '<'
+                    , '>'
+                    , ':'
+                    , '^'
+                    , '#'
+                    , '|'
+                    , '-'
+                    , '_'
+                    , '\\'
+                    , '['
+                    , ']'
+                    )
 
 def ishex(c):
     return c.isdigit() or ('a' <= c and c <= 'f')
@@ -364,7 +180,7 @@ def notSpace(c):
 
 ident = p.many(p.some(isident)) >> join
 
-text = p.oneplus(p.some(isnormaltext)) >> format_str
+text = p.oneplus(p.some(lambda c: isnormaltext(c) and c != '\n')) >> format_str
 
 # inlineCodeChar = p.many(p.some(lambda c: c not in ('`')))
 
@@ -395,26 +211,34 @@ byteInt = p.oneplus(p.some(lambda c: c.isdigit()))
 rgbColor = char('(') + byteInt + char(',') + \
            byteInt + char(',') + byteInt + char(')') >> format_rgb
 colorDef = hexColor | strColor | rgbColor
-color = char('<') + p.many(inline) + char(':') + colorDef + char('>') >> format_color
+color = char('<') + p.many(inline) + char(':') + colorDef + char('>') \
+        >> format_color
+
+# reference
+inlinereference = char('[') + ident + literal(']') >> format_inlinereference
 
 # footnote
 footnote = literal('^#') >> format_footnote
 
 # rest = bold | color | italic | (p.some(lambda c: not isnormaltext(c)) >> (lambda s: print("rest:", s)))
 
-# escapechar = char('\\') + p.some(not isnormaltext)
+escapechar = char('\\') \
+           + p.some(lambda c: not isnormaltext(c)) \
+           >> format_escape
 
 inline.define(
-        footnote
+        escapechar
+      | footnote
       | color
       | bold
       | italic
+      | inlinereference
       | underline
       | text)
 
 # print(inline.parse("*bold*")) # "<color*a*:red>"))
 
-newline = p.oneplus(p.a('\n')) >> join
+newline = p.oneplus(p.a('\n')) >> format_newline
 
 endline = char('\n') | p.finished
 
@@ -441,7 +265,7 @@ optCaption = p.maybe(p.oneplus(line))
 # figure = literal('![') + path + char(']') + optLabel + endline + optCaption
 figure = char('!') + path + optLabel + endline + optCaption >> format_figure
 
-paragraph = p.oneplus(line) + p.maybe(newline | p.finished)
+paragraph = p.oneplus(line) + p.maybe(newline) >> format_paragraph
 
 # # codeblock parsing
 # # any non-newline char can be in a codeblock
